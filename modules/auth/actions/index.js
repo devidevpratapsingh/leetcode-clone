@@ -71,18 +71,18 @@ export const currentUserRole = async ()=>{
   }
 }
 
-// export const getCurrentUser = async()=>{
-//   const user = await currentUser()
+export const getCurrentUser = async()=>{
+  const user = await currentUser()
 
-//   const dbUser = await db.user.findUnique({
-//     where:{
-//       clerkId:user.id
-//     },
-//     select:{
-//       id:true
-//     }
-//   })
+  const dbUser = await db.user.findUnique({
+    where:{
+      clerkId:user.id
+    },
+    select:{
+      id:true
+    }
+  })
 
 
-//   return dbUser;
-// }
+  return dbUser;
+}
