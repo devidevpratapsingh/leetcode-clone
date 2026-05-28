@@ -492,6 +492,10 @@ const CreateProblemForm = () => {
   const form = useForm({
     resolver: zodResolver(problemSchema),
     defaultValues: {
+      title: "",
+      description: "",
+      difficulty: "EASY",
+      constraints: "",
       testCases: [{ input: "", output: "" }],
       tags: [""],
       examples: {
@@ -540,24 +544,45 @@ const CreateProblemForm = () => {
     name: "tags",
   });
 
-  const onSubmit = async(values)=>{
+  const onInvalid = () => {
+    toast.error("Please complete all required fields before submitting.");
+  };
+
+  const onSubmit = async (values) => {
     try {
-        setIsloading(true)
-        const response = await fetch("/api/create-problem",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify(values)
-        })
-        toast.success(response.message || "Problem created successfully")
-        router.push("/problems")
+      setIsloading(true);
+
+      const payload = {
+        ...values,
+        tags: values.tags.map((tag) => tag.trim()).filter(Boolean),
+      };
+
+      const response = await fetch("/api/create-problem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        let message = result.error || "Failed to create problem";
+        if (result.testCase) {
+          message = `${message} (input: ${result.testCase.input}, expected: ${result.testCase.expectedOutput}, got: ${result.testCase.actualOutput ?? "no output"})`;
+        }
+        throw new Error(message);
+      }
+
+      toast.success(result.message || "Problem created successfully");
+      router.push("/problems");
+      router.refresh();
     } catch (error) {
-          console.error("Error creating problem:", error);
+      console.error("Error creating problem:", error);
       toast.error(error.message || "Failed to create problem");
+    } finally {
+      setIsloading(false);
     }
-    finally{
-         setIsloading(false);
-    }
-  }
+  };
 
    const loadSampleData = () => {
     const sampleData = sampleType === "DP" ? sampledpData : sampleStringProblem;
@@ -614,7 +639,15 @@ const CreateProblemForm = () => {
         </CardHeader>
 
         <CardContent className="p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          <form
+            onSubmit={handleSubmit(onSubmit, onInvalid)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
+                e.preventDefault();
+              }
+            }}
+            className="space-y-8"
+          >
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">

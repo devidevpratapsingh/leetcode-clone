@@ -54,7 +54,8 @@ const CreatePlaylistModal = ({ isOpen, onClose, onSubmit }) => {
         <DialogHeader>
           <DialogTitle>Create New Playlist</DialogTitle>
           <DialogDescription>
-            Create a new playlist to organize your favorite problems
+            Create a playlist to group existing problems. To add new coding
+            challenges, use Create Problem instead.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">

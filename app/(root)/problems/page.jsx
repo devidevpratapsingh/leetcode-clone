@@ -4,6 +4,8 @@ import ProblemsTable from '@/modules/problems/components/problem-table';
 import { currentUser } from '@clerk/nextjs/server'
 import React from 'react'
 
+export const dynamic = 'force-dynamic';
+
 const ProblemsPage = async() => {
     const user = await currentUser()
 
@@ -16,20 +18,19 @@ const ProblemsPage = async() => {
     });
     }
 
-    const {data:problems , error} = await getAllProblems()
+    const result = await getAllProblems();
 
-      if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-destructive">Error loading problems: {error}</p>
-      </div>
-    );
-  }
-
+    if (!result.success) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-destructive">Error loading problems: {result.error}</p>
+        </div>
+      );
+    }
 
   return (
     <div className='container mx-auto py-32'>
-        <ProblemsTable problems={problems} user={dbUser}/>
+        <ProblemsTable problems={result.data ?? []} user={dbUser}/>
     </div>
   )
 }

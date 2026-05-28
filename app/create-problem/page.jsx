@@ -5,12 +5,17 @@ import CreateProblemForm from '@/modules/problems/components/create-problem-form
 import { currentUser } from '@clerk/nextjs/server'
 import { UserRole } from '@prisma/client';
 import { ArrowLeft } from 'lucide-react';
-import { redirect } from 'next/dist/server/api-utils';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import React from 'react'
 
 const CreateProblemPage = async() => {
     const user = await currentUser();
+    const role = await currentUserRole();
+
+    if (role !== UserRole.ADMIN) {
+      redirect("/problems");
+    }
 
   return (
     <section className='flex flex-col items-center justify-center  mx-4 my-4'>

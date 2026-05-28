@@ -64,7 +64,7 @@ export const currentUserRole = async ()=>{
             role:true
           }
         })
-    return userRole.role;
+    return userRole?.role ?? null;
   } catch (error) {
      console.error("❌ Error fetching user role:", error);
         return { success: false, error: "Failed to fetch user role" };
@@ -72,7 +72,11 @@ export const currentUserRole = async ()=>{
 }
 
 export const getCurrentUser = async()=>{
-  const user = await currentUser()
+  const user = await currentUser();
+
+  if (!user) {
+    return null;
+  }
 
   const dbUser = await db.user.findUnique({
     where:{
@@ -81,8 +85,7 @@ export const getCurrentUser = async()=>{
     select:{
       id:true
     }
-  })
-
+  });
 
   return dbUser;
-}
+};

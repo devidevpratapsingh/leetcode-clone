@@ -13,11 +13,8 @@ import {
 } from "lucide-react";
 import AddToPlaylistModal from "./add-to-playlist";
 import CreatePlaylistModal from "./create-playlist";
-import {
-  createPlaylist,
-  deleteProblem,
-  addProblemToPlaylist,
-} from "../actions";
+import { deleteProblem } from "../actions";
+import { UserRole } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -105,7 +102,11 @@ const ProblemsTable = ({ problems, user }) => {
         }),
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create playlist");
+      }
 
       if (result.success) {
         setIsCreateModalOpen(false);
@@ -127,7 +128,11 @@ const ProblemsTable = ({ problems, user }) => {
         body: JSON.stringify({ problemId, playlistId }),
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to add problem to playlist");
+      }
 
       if (result.success) {
         setIsAddToPlaylistModalOpen(false);
@@ -177,10 +182,24 @@ const ProblemsTable = ({ problems, user }) => {
             Manage and solve coding problems
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create Playlist
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {user?.role === UserRole.ADMIN && (
+            <Button asChild className="gap-2">
+              <Link href="/create-problem">
+                <Plus className="h-4 w-4" />
+                Create Problem
+              </Link>
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Create Playlist
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -333,9 +352,26 @@ const ProblemsTable = ({ problems, user }) => {
                     colSpan={5}
                     className="text-center py-8 text-muted-foreground"
                   >
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col items-center gap-3">
                       <Search className="h-8 w-8 opacity-50" />
-                      <p>No problems found matching your criteria.</p>
+                      {!problems?.length ? (
+                        <>
+                          <p>No problems have been created yet.</p>
+                          <p className="text-sm max-w-md">
+                            Playlists only organize problems — they do not create
+                            them. Use Create Problem to add coding challenges.
+                          </p>
+                          {user?.role === UserRole.ADMIN && (
+                            <Button asChild>
+                              <Link href="/create-problem">
+                                Create your first problem
+                              </Link>
+                            </Button>
+                          )}
+                        </>
+                      ) : (
+                        <p>No problems found matching your criteria.</p>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
